@@ -1,5 +1,6 @@
 import { Star, Quote } from "lucide-react";
 import { ScrollReveal } from "@/components/shared/ScrollReveal";
+import { useState, useRef } from "react";
 
 interface Review {
   name: string;
@@ -20,6 +21,20 @@ for (let i = 0; i < reviews.length; i += 2) {
 }
 
 export default function ReviewsSection() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const scrollPosition = scrollRef.current.scrollLeft;
+    const containerWidth = scrollRef.current.offsetWidth;
+    // RTL scrollLeft is negative or handled differently by browsers
+    const absoluteScroll = Math.abs(scrollPosition);
+    const index = Math.round(absoluteScroll / containerWidth);
+    if (index !== activeIndex && index < reviewPairs.length) {
+      setActiveIndex(index);
+    }
+  };
   return (
     <section className="py-24 bg-surface relative overflow-hidden">
       {/* Decorative background elements */}
@@ -37,7 +52,11 @@ export default function ReviewsSection() {
           </div>
         </ScrollReveal>
 
-        <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible pb-12 md:pb-0 px-4 -mx-4 scrollbar-hide snap-x snap-mandatory">
+        <div 
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible pb-12 md:pb-0 px-4 -mx-4 scrollbar-hide snap-x snap-mandatory"
+        >
           {reviewPairs.map((pair: Review[], pairIdx: number) => (
             <div key={pairIdx} className="min-w-[85vw] md:min-w-0 snap-center flex flex-col gap-6 md:contents">
               {pair.map((review: Review, idx: number) => (
@@ -75,7 +94,7 @@ export default function ReviewsSection() {
         <div className="flex justify-center mt-4 md:hidden">
           <div className="flex gap-1.5">
             {reviewPairs.map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-primary' : 'bg-primary/20'}`} />
+              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-primary w-4' : 'bg-primary/20'}`} />
             ))}
           </div>
         </div>
